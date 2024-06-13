@@ -45,6 +45,8 @@ ISP
     local stratum 5
 22. systemctl restart chronyd
 23. После того как настроили днс на srv и web-r, надо указать в /etc/resolv.conf только nameserver 10.10.10.100, вот так (если инета нет, добавьте еще nameserver 8.8.8.8 и nameserver 94.232.137.104, может помочь):
+ ![экз_послжн](https://github.com/ErmKaterina/-/assets/109353253/8521027e-6bfe-4894-950f-65e26788be4f)
+
 
 
 CLI
