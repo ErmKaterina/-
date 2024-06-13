@@ -1,30 +1,30 @@
 ISP
 
 1. hostnamectl set-hostname isp
-2. apt-get update && apt-get install chrony nano nftables -y
-3. nano /etc/net/sysctl.conf 
+2. apt-get update && apt-get install chrony nftables -y
+3. vim /etc/net/sysctl.conf 
     1. net.ipv4.ip_forward = 1
 4. cd /etc/net/ifaces
 5. cp -r enp0s3/ enp0s8
 6. cp -r enp0s3/ enp0s9
 7. cp -r enp0s3/ enp0s10
-8. nano enp0s8/options
+8. vim enp0s8/options
     1. BOOTPROTO=static
-9. nano enp0s8/ipv4address
+9. vim enp0s8/ipv4address
     1. 100.100.100.1/28
-10. nano enp0s9/options
+10. vim enp0s9/options
     1. BOOTPROTO=static
-11. nano enp0s9/ipv4address
+11. vim enp0s9/ipv4address
     1. 150.150.150.1/28
-12. nano enp0s10/options
+12. vim enp0s10/options
 1. BOOTPROTO=static
-13. nano enp0s10/ipv4address
+13. vim enp0s10/ipv4address
     1. 35.35.35.1/28
 14. systemctl restart network
 15. reboot
 16. ip route add 10.10.10.0/24 via 100.100.100.10 (можно написать в файл /etc/net/ifaces/enp0s8/ipv4route и рестартнуть network)
 17. ip route add 20.20.20.0/24 via 150.150.150.10 (можно написать в файл /etc/net/ifaces/enp0s9/ipv4route и рестартнуть network)
-18. nano /etc/nftables/nftables.nft
+18. vim /etc/nftables/nftables.nft
     1. в начало:
     flush ruleset
     2. в конец:
@@ -36,7 +36,7 @@ ISP
     }
 19. systemctl enable --now nftables
 20. nft -f /etc/nftables/nftables.nft
-21. nano /etc/chrony.conf
+21. vim /etc/chrony.conf
     1. в конец пишем:
     server 127.0.0.1
     allow 100.100.100.0/28
@@ -53,16 +53,16 @@ CLI
 - 
     1. hostnamectl set-hostname cli
     2. Пишем “ip a” и “ls /etc/net/ifaces/” проверяем, что для интерфейса ens19 есть директория /etc/net/ifaces/ens19, если нет, то “cp -r /etc/net/ifaces/ens18 /etc/net/ifaces/ens19”
-    3. nano /etc/net/ifaces/enp0s3/options
+    3. vim /etc/net/ifaces/enp0s3/options
         1. BOOTPROTO=static
-    4. nano /etc/net/ifaces/enp0s3/ipv4address
+    4. vim /etc/net/ifaces/enp0s3/ipv4address
         1. 35.35.35.10/28
-    5. nano /etc/net/ifaces/enp0s3/ipv4route
+    5. vim /etc/net/ifaces/enp0s3/ipv4route
         1. default via 35.35.35.1 (ip адрес isp)
     6. systemctl restart network
     7. reboot
     8. Если “ping 8.8.8.8” идет, а “ping ya.ru” не идет, то в 
-    nano /etc/net/ifaces/enp0s3/resolv.conf записываем в начало
+    vim /etc/net/ifaces/enp0s3/resolv.conf записываем в начало
     nameserver 94.232.137.104
     9. apt-get update && apt-get install yandex-browser chrony -y
     10. vim /etc/chrony.conf
@@ -92,8 +92,8 @@ RTR-L
 11. Если “ping 8.8.8.8” идет, а “ping ya.ru” не идет, то в 
 vim /etc/net/ifaces/enp0s3/resolv.conf записываем в начало
 nameserver 94.232.137.104
-12. apt-get update && apt-get install chrony nftables nano strongswan -y
-13. nano /etc/nftables/nftables.nft
+12. apt-get update && apt-get install chrony nftables strongswan -y
+13. vim /etc/nftables/nftables.nft
     1. в начало:
     flush ruleset
     2. в конец:
@@ -109,7 +109,7 @@ nameserver 94.232.137.104
 17. ip addr add 10.5.5.1/30 dev tun0
 18. ip link set up tun0
 19. ip route add 20.20.20.0/24 (подсеть правого офиса) via 10.5.5.2
-20. nano /etc/strongswan/ipsec.conf
+20. vim /etc/strongswan/ipsec.conf
     1. ниже “config setup” пишем:
     conn vpn
                       auto=start
@@ -123,7 +123,7 @@ nameserver 94.232.137.104
                       rightprotoport=gre
                       ike=aes128-sha256-modp3072
                       esp=aes128-sha256
-21. nano /etc/strongswan/ipsec.secrets
+21. vim /etc/strongswan/ipsec.secrets
     1. 100.100.100.10 150.150.150.10 : PSK “P@ssw0rd”
 22. systemctl enable --now ipsec.service
 23. После того как настроили днс на srv и web-r, надо указать в /etc/resolv.conf только nameserver 10.10.10.100, вот так (если инета нет, добавьте еще nameserver 8.8.8.8 и nameserver 94.232.137.104, может помочь):
@@ -152,8 +152,8 @@ RTR-R
 11. Если “ping 8.8.8.8” идет, а “ping ya.ru” не идет, то в 
 vim /etc/net/ifaces/enp0s3/resolv.conf записываем в начало
 nameserver 94.232.137.104
-12. apt-get update && apt-get install chrony nftables nano strongswan -y\
-13. 13. nano /etc/nftables/nftables.nft
+12. apt-get update && apt-get install chrony nftables strongswan -y\
+13. 13. vim /etc/nftables/nftables.nft
     1. в начало:
     flush ruleset
     2. в конец:
@@ -169,7 +169,7 @@ nameserver 94.232.137.104
 17. ip addr add 10.5.5.2/30 dev tun0
 18. ip link set up tun0
 19. ip route add 10.10.10.0/24 (подсеть левого офиса) via 10.5.5.1
-20. nano /etc/strongswan/ipsec.conf
+20. vim /etc/strongswan/ipsec.conf
     1. ниже “config setup” пишем:
 conn vpn
 (следующие строки через tab)
@@ -184,7 +184,7 @@ conn vpn
                   rightprotoport=gre
                   ike=aes128-sha256-modp3072
                   esp=aes128-sha256
-21. nano /etc/strongswan/ipsec.secrets
+21. vim /etc/strongswan/ipsec.secrets
     1. 100.100.100.10 150.150.150.10 : PSK “P@ssw0rd”
 22. systemctl enable --now ipsec.service
 23. После того как настроили днс на srv и web-r, надо указать в /etc/resolv.conf только nameserver 10.10.10.100, вот так (если инета нет, добавьте еще nameserver 8.8.8.8 и nameserver 94.232.137.104, может помочь):
