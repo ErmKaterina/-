@@ -246,3 +246,30 @@ sshuser - пользователь указан в задании
 
 
 SRV-L
+
+1. hostnamectl set-hostname srv-l
+2. vim /etc/net/ifaces/enp0s3/options
+    1. BOOTPROTO=static
+3. vim /etc/net/ifaces/enp0s3/ipv4address
+    1. 10.10.10.100/24
+4. vim /etc/net/ifaces/enp0s3/ipv4route
+    1. default via 10.10.10.1
+5. systemctl restart network
+6. reboot
+7. apt-get update && apt-get install bind bind-utils chrony -y
+8. vim /etc/chrony.conf
+    1. комментируем (пишем #) перед “pool pool.ntp.org iburst”
+    2. в конец пишем “server 100.100.100.1 iburst”
+9. vim /etc/bind/options.conf
+    1. добавляем в options:
+    listen-on { any; };
+    forwarders { 94.232.137.104; };
+    dnssec-validation no;
+    recursion yes;
+    allow-query { any; };
+    allow-recursion { any; };
+![1](https://github.com/ErmKaterina/-/assets/109353253/ce8b63b4-4cc6-4587-aa57-b57714f6e384)
+
+
+
+
