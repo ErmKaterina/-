@@ -268,6 +268,7 @@ SRV-L
     recursion yes;
     allow-query { any; };
     allow-recursion { any; };
+
 ![1](https://github.com/ErmKaterina/-/assets/109353253/ce8b63b4-4cc6-4587-aa57-b57714f6e384)
 
 
