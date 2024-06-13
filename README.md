@@ -271,6 +271,28 @@ SRV-L
 
 ![1](https://github.com/ErmKaterina/-/assets/109353253/ce8b63b4-4cc6-4587-aa57-b57714f6e384)
 
+10. vim /etc/bind/rfc1912.conf
+    1. добавляем в конец:
+    zone "au.team" {
+                    type master;
+                    file "au.team";
+                    allow-transfer {20.20.20.100;};
+    };
+    zone "10.10.10.in-addr.arpa" {
+                    type master;
+                    file "left.reverse";
+                    allow-transfer {20.20.20.100;};
+    };
+    zone "20.20.20. in-addr.arpa" {
+                    type master;
+                    file "right. reverse";
+                    allow-transfer {20.20.20.100;};
+    };
+    zone "35.35.35. in-addr.arpa" {
+                    type master;
+                    file "cli. reverse";
+                    allow-transfer {20.20.20.100;};
 
+![2](https://github.com/ErmKaterina/-/assets/109353253/c9b0796d-f03b-4f8d-97d5-fc5634cb93ee)
 
 
