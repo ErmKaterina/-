@@ -296,3 +296,61 @@ SRV-L
 ![2](https://github.com/ErmKaterina/-/assets/109353253/c9b0796d-f03b-4f8d-97d5-fc5634cb93ee)
 
 
+11. cd /etc/bind/zone/
+12. cp localhost au.team
+13. vim au.team
+    1. заменяем localhost. на au.team.  и root.localhost. на root.au.team.
+    2. редачим зоны, должны получиться такие зоны:
+    @(Tab)IN(Tab)NS(Tab)au.team.
+    @(Tab)IN(Tab)NS(Tab)10.10.10.100
+    isp(Tab)IN(Tab)A(Tab)100.100.100.1
+    rtr-l(Tab)IN(Tab)A(Tab)10.10.10.1
+    rtr-r(Tab)IN(Tab)A(Tab)20.20.20.1
+    web-l(Tab)IN(Tab)A(Tab)10.10.10.110
+    web-r(Tab)IN(Tab)A(Tab)10.10.10.100
+    cli(Tab)IN(Tab)A(Tab)35.35.35.10
+    dns(Tab)IN(Tab)CNAME(Tab)srv-l
+    mediawiki(Tab)IN(Tab)CNAME(Tab)web-r
+    3. должно получиться так
+   
+![3](https://github.com/ErmKaterina/-/assets/109353253/0ff730d6-6c01-45aa-8dad-968fcadaff85)
+
+       
+   14. cp localhost right.reverse
+15. vim right.reverse
+    1. заменяем localhost. на 20.20.20.in-addr.arpa. и root.localhost. на root.20.20.20.in-addr.arpa.
+    2. редачим зоны, должны получиться такие зоны:
+    @(Tab)IN(Tab)NS(Tab)au.team.
+    @(Tab)IN(Tab)NS(Tab)20.20.20.100
+    1(Tab)PTR(Tab)rtr-r.au.team.
+    100(Tab)PTR(Tab)web-r.au.team.
+    3. должно получиться так
+
+![4](https://github.com/ErmKaterina/-/assets/109353253/c05b0add-bdc4-483c-bf61-52a5a4fe789a)
+
+16. cp right.reverse left.reverse
+17. vim left.reverse
+    1. заменяем 20.20.20.in-addr.arpa. на 10.10.10.in-addr.arpa. и root.localhost. на root.10.10.10.in-addr.arpa.
+    2. @(Tab)IN(Tab)NS(Tab)au.team.
+    @(Tab)IN(Tab)NS(Tab)10.10.10.100
+    1(Tab)PTR(Tab)rtr-l.au.team.
+    100(Tab)PTR(Tab)srv-l.au.team.
+    110(Tab)PTR(Tab)web-l.au.team.
+
+       ![5](https://github.com/ErmKaterina/-/assets/109353253/b642be96-e626-47d8-b9ff-f4e2b144f57e)
+
+18. cp right.reverse cli.reverse
+19. vim left.reverse
+    1. заменяем 10.10.10.in-addr.arpa. на 35.35.35.in-addr.arpa. и root.localhost. на root.35.35.35.in-addr.arpa.
+   
+    ![6](https://github.com/ErmKaterina/-/assets/109353253/c9cf5177-8ac1-46dc-9312-dd24599bd37c)
+
+    
+    
+    20. chmod 777 au.team
+21. chmod 777 right.reverse
+22. chmod 777 left.reverse
+23. chmod 777 cli.reverse
+24. systemctl restart bind
+25. После того как настроили днс на srv и web-r, надо указать в /etc/resolv.conf только nameserver 127.0.0.1 (если инета нет, добавьте еще nameserver 8.8.8.8 и nameserver 94.232.137.104, может помочь)
+
