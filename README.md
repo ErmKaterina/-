@@ -66,8 +66,8 @@ CLI
     nameserver 94.232.137.104
     9. apt-get update && apt-get install yandex-browser chrony -y
     10. vim /etc/chrony.conf
-        1. комментируем (пишем #) перед “pool pool.ntp.org iburst”
-        2. в конец пишем “server 35.35.35.1 iburst”
+        1. # “pool pool.ntp.org iburst”
+        2. в конец “server 35.35.35.1 iburst”
     11. systemctl restart chronyd.service
     12. После того как настроили днс на srv и web-r, надо указать в /etc/resolv.conf только nameserver 10.10.10.100, вот так (если инета нет, добавьте еще nameserver 8.8.8.8 и nameserver 94.232.137.104, может помочь):
 
@@ -126,7 +126,10 @@ nameserver 94.232.137.104
 21. vim /etc/strongswan/ipsec.secrets
     1. 100.100.100.10 150.150.150.10 : PSK “P@ssw0rd”
 22. systemctl enable --now ipsec.service
-23. После того как настроили днс на srv и web-r, надо указать в /etc/resolv.conf только nameserver 10.10.10.100, вот так (если инета нет, добавьте еще nameserver 8.8.8.8 и nameserver 94.232.137.104, может помочь):
+23. vim /etc/chrony.conf
+        1. # “pool pool.ntp.org iburst”
+        2. в конец server 100.100.100.1 iburst
+24. После того как настроили днс на srv и web-r, надо указать в /etc/resolv.conf только nameserver 10.10.10.100, вот так (если инета нет, добавьте еще nameserver 8.8.8.8 и nameserver 94.232.137.104, может помочь):
 
 
 
@@ -172,7 +175,6 @@ nameserver 94.232.137.104
 20. vim /etc/strongswan/ipsec.conf
     1. ниже “config setup” пишем:
 conn vpn
-(следующие строки через tab)
                   auto=start
                   type=tunnel
                   authby=secret
@@ -187,7 +189,10 @@ conn vpn
 21. vim /etc/strongswan/ipsec.secrets
     1. 100.100.100.10 150.150.150.10 : PSK “P@ssw0rd”
 22. systemctl enable --now ipsec.service
-23. После того как настроили днс на srv и web-r, надо указать в /etc/resolv.conf только nameserver 10.10.10.100, вот так (если инета нет, добавьте еще nameserver 8.8.8.8 и nameserver 94.232.137.104, может помочь):
+23. 12. vim /etc/chrony.conf
+        1. .# “pool pool.ntp.org iburst”
+        2. в конец server 150.150.150.1 iburst
+24. После того как настроили днс на srv и web-r, надо указать в /etc/resolv.conf только nameserver 10.10.10.100, вот так (если инета нет, добавьте еще nameserver 8.8.8.8 и nameserver 94.232.137.104, может помочь):
 
 WEB-L
 1. hostnamectl set-hostname web-l
@@ -213,7 +218,10 @@ sshuser - пользователь указан в задании
 9. adduser sshuser
 10. systemctl restart sshd
 11. apt-get update && apt-get install chrony docker-io -y
-12. После того как настроили днс на srv и web-r, надо указать в /etc/resolv.conf только nameserver 10.10.10.100, вот так (если инета нет, добавьте еще nameserver 8.8.8.8 и nameserver 94.232.137.104, может помочь):
+12. vim /etc/chrony.conf
+        1. # “pool pool.ntp.org iburst”
+        2. в конец server 100.100.100.1 iburst
+13. После того как настроили днс на srv и web-r, надо указать в /etc/resolv.conf только nameserver 10.10.10.100, вот так (если инета нет, добавьте еще nameserver 8.8.8.8 и nameserver 94.232.137.104, может помочь):
 
 
 
@@ -242,7 +250,10 @@ sshuser - пользователь указан в задании
 9. adduser sshuser
 10. systemctl restart sshd
 11. apt-get update && apt-get install chrony bind bind-utils -y
-12. После того как настроили днс на srv и web-r, надо указать в /etc/resolv.conf только nameserver 127.0.0.1, (если инета нет, добавьте еще nameserver 8.8.8.8 и nameserver 94.232.137.104, может помочь):
+12. vim /etc/chrony.conf
+        1. # “pool pool.ntp.org iburst”
+        2. в конец server 150.150.150.1 iburst
+13. После того как настроили днс на srv и web-r, надо указать в /etc/resolv.conf только nameserver 127.0.0.1, (если инета нет, добавьте еще nameserver 8.8.8.8 и nameserver 94.232.137.104, может помочь):
 
 
 SRV-L
@@ -258,8 +269,8 @@ SRV-L
 6. reboot
 7. apt-get update && apt-get install bind bind-utils chrony -y
 8. vim /etc/chrony.conf
-    1. комментируем (пишем #) перед “pool pool.ntp.org iburst”
-    2. в конец пишем “server 100.100.100.1 iburst”
+    1. .# “pool pool.ntp.org iburst”
+    2. в конец  “server 100.100.100.1 iburst”
 9. vim /etc/bind/options.conf
     1. добавляем в options:
     listen-on { any; };
