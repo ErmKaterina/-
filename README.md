@@ -303,6 +303,7 @@ SRV-L
                     type master;
                     file "cli. reverse";
                     allow-transfer {20.20.20.100;};
+при настройки вебр меняем на айпи срв
 
 ![2](https://github.com/ErmKaterina/-/assets/109353253/c9b0796d-f03b-4f8d-97d5-fc5634cb93ee)
 
