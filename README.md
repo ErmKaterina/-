@@ -22,6 +22,8 @@ ISP
     1. 35.35.35.1/28
 14. systemctl restart network
 15. reboot
+
+--------------------------------------------------------------------
 16. ip route add 10.10.10.0/24 via 100.100.100.10 (можно написать в файл /etc/net/ifaces/enp0s8/ipv4route и рестартнуть network)
 17. ip route add 20.20.20.0/24 via 150.150.150.10 (можно написать в файл /etc/net/ifaces/enp0s9/ipv4route и рестартнуть network)
 18. vim /etc/nftables/nftables.nft
@@ -36,15 +38,19 @@ ISP
     }
 19. systemctl enable --now nftables
 20. nft -f /etc/nftables/nftables.nft
-21. vim /etc/chrony.conf
+
+    --------------------
+22. vim /etc/chrony.conf
     1. в конец пишем:
     server 127.0.0.1
     allow 100.100.100.0/28
     allow 150.150.150.0/28
     allow 35.35.35.0/28
     local stratum 5
-22. systemctl restart chronyd
-23. После того как настроили днс на srv и web-r, надо указать в /etc/resolv.conf только nameserver 10.10.10.100, вот так (если инета нет, добавьте еще nameserver 8.8.8.8 и nameserver 94.232.137.104, может помочь):
+23. systemctl restart chronyd
+
+    ----------------------
+25. После того как настроили днс на srv и web-r, надо указать в /etc/resolv.conf только nameserver 10.10.10.100, вот так (если инета нет, добавьте еще nameserver 8.8.8.8 и nameserver 94.232.137.104, может помочь):
  ![экз_послжн](https://github.com/ErmKaterina/-/assets/109353253/8521027e-6bfe-4894-950f-65e26788be4f)
 
 
@@ -52,7 +58,7 @@ ISP
 CLI
 - 
     1. hostnamectl set-hostname cli
-    2. Пишем “ip a” и “ls /etc/net/ifaces/” проверяем, что для интерфейса ens19 есть директория /etc/net/ifaces/ens19, если нет, то “cp -r /etc/net/ifaces/ens18 /etc/net/ifaces/ens19”
+    2. “ip a” и “ls /etc/net/ifaces/” проверяем, что для интерфейса ens19 есть директория /etc/net/ifaces/ens19, если нет, то “cp -r /etc/net/ifaces/ens18 /etc/net/ifaces/ens19”
     3. vim /etc/net/ifaces/enp0s3/options
         1. BOOTPROTO=static
     4. vim /etc/net/ifaces/enp0s3/ipv4address
@@ -65,6 +71,14 @@ CLI
     vim /etc/net/ifaces/enp0s3/resolv.conf записываем в начало
     nameserver 94.232.137.104
     9. apt-get update && apt-get install yandex-browser chrony -y
+    запустить НЕ от рута с помощью команды:
+yandex-browser-stable
+
+запустить от рута с помощью команды:
+yandex-browser-stable --no-sandbox
+    
+
+    ------------------------
     10. vim /etc/chrony.conf
         1. # “pool pool.ntp.org iburst”
         2. в конец “server 35.35.35.1 iburst”
@@ -93,7 +107,9 @@ RTR-L
 vim /etc/net/ifaces/enp0s3/resolv.conf записываем в начало
 nameserver 94.232.137.104
 12. apt-get update && apt-get install chrony nftables strongswan -y
-13. vim /etc/nftables/nftables.nft
+
+-----------------------------------
+14. vim /etc/nftables/nftables.nft
     1. в начало:
     flush ruleset
     2. в конец:
@@ -103,13 +119,13 @@ nameserver 94.232.137.104
          ip saddr 10.10.10.0/24 oifname enp0s3 (интерфейс в сторону интернета) masquerade;
       }
     }
-14. systemctl enable --now nftables
-15. nft -f /etc/nftables/nftables.nft
-16. ip tunnel add tun0 mode gre local 100.100.100.10 (RTR-L) remote 150.150.150.10 (RTR-R)
-17. ip addr add 10.5.5.1/30 dev tun0
-18. ip link set up tun0
-19. ip route add 20.20.20.0/24 (подсеть правого офиса) via 10.5.5.2
-20. vim /etc/strongswan/ipsec.conf
+15. systemctl enable --now nftables
+16. nft -f /etc/nftables/nftables.nft
+17. ip tunnel add tun0 mode gre local 100.100.100.10 (RTR-L) remote 150.150.150.10 (RTR-R)
+18. ip addr add 10.5.5.1/30 dev tun0
+19. ip link set up tun0
+20. ip route add 20.20.20.0/24 (подсеть правого офиса) via 10.5.5.2
+21. vim /etc/strongswan/ipsec.conf
     1. ниже “config setup” пишем:
     conn vpn
                       auto=start
@@ -123,13 +139,14 @@ nameserver 94.232.137.104
                       rightprotoport=gre
                       ike=aes128-sha256-modp3072
                       esp=aes128-sha256
-21. vim /etc/strongswan/ipsec.secrets
+22. vim /etc/strongswan/ipsec.secrets
     1. 100.100.100.10 150.150.150.10 : PSK “P@ssw0rd”
-22. systemctl enable --now ipsec.service
-23. vim /etc/chrony.conf
+23. systemctl enable --now ipsec.service
+24. -------------------------------
+25. vim /etc/chrony.conf
         1. # “pool pool.ntp.org iburst”
         2. в конец server 100.100.100.1 iburst
-24. После того как настроили днс на srv и web-r, надо указать в /etc/resolv.conf только nameserver 10.10.10.100, вот так (если инета нет, добавьте еще nameserver 8.8.8.8 и nameserver 94.232.137.104, может помочь):
+26. После того как настроили днс на srv и web-r, надо указать в /etc/resolv.conf только nameserver 10.10.10.100, вот так (если инета нет, добавьте еще nameserver 8.8.8.8 и nameserver 94.232.137.104, может помочь):
 
 
 
@@ -155,8 +172,10 @@ RTR-R
 11. Если “ping 8.8.8.8” идет, а “ping ya.ru” не идет, то в 
 vim /etc/net/ifaces/enp0s3/resolv.conf записываем в начало
 nameserver 94.232.137.104
-12. apt-get update && apt-get install chrony nftables strongswan -y\
-13. 13. vim /etc/nftables/nftables.nft
+12. apt-get update && apt-get install chrony nftables strongswan -y
+
+13. ------------------------------
+14. 13. vim /etc/nftables/nftables.nft
     1. в начало:
     flush ruleset
     2. в конец:
@@ -166,13 +185,13 @@ nameserver 94.232.137.104
          ip saddr 20.20.20.0/24 oifname enp0s3 (интерфейс в сторону интернета) masquerade;
       }
     }
-14. systemctl enable --now nftables
-15. nft -f /etc/nftables/nftables.nft
-16. ip tunnel add tun0 mode gre local 150.150.150.10 (RTR-R) remote 100.100.100.10 (RTR-L)
-17. ip addr add 10.5.5.2/30 dev tun0
-18. ip link set up tun0
-19. ip route add 10.10.10.0/24 (подсеть левого офиса) via 10.5.5.1
-20. vim /etc/strongswan/ipsec.conf
+15. systemctl enable --now nftables
+16. nft -f /etc/nftables/nftables.nft
+17. ip tunnel add tun0 mode gre local 150.150.150.10 (RTR-R) remote 100.100.100.10 (RTR-L)
+18. ip addr add 10.5.5.2/30 dev tun0
+19. ip link set up tun0
+20. ip route add 10.10.10.0/24 (подсеть левого офиса) via 10.5.5.1
+21. vim /etc/strongswan/ipsec.conf
     1. ниже “config setup” пишем:
 conn vpn
                   auto=start
@@ -186,13 +205,14 @@ conn vpn
                   rightprotoport=gre
                   ike=aes128-sha256-modp3072
                   esp=aes128-sha256
-21. vim /etc/strongswan/ipsec.secrets
+22. vim /etc/strongswan/ipsec.secrets
     1. 100.100.100.10 150.150.150.10 : PSK “P@ssw0rd”
-22. systemctl enable --now ipsec.service
-23. 12. vim /etc/chrony.conf
+23. systemctl enable --now ipsec.service
+24. ---------------------------------------------
+25. 12. vim /etc/chrony.conf
         1. .# “pool pool.ntp.org iburst”
         2. в конец server 150.150.150.1 iburst
-24. После того как настроили днс на srv и web-r, надо указать в /etc/resolv.conf только nameserver 10.10.10.100, вот так (если инета нет, добавьте еще nameserver 8.8.8.8 и nameserver 94.232.137.104, может помочь):
+26. После того как настроили днс на srv и web-r, надо указать в /etc/resolv.conf только nameserver 10.10.10.100, вот так (если инета нет, добавьте еще nameserver 8.8.8.8 и nameserver 94.232.137.104, может помочь):
 
 WEB-L
 1. hostnamectl set-hostname web-l
@@ -204,9 +224,11 @@ WEB-L
     1. default via 10.10.10.1
 5. systemctl restart network
 6. reboot
-7. vim /etc/openssh/banner.txt
+7. apt-get update && apt-get install chrony docker-io -y
+   ----------------------------
+9. vim /etc/openssh/banner.txt
     1. Authorized access only
-8. vim /etc/openssh/sshd_config
+10. vim /etc/openssh/sshd_config
     1. расскоментируем Port 22
     пишем вместо 22 тот порт, который указан в задании (2024)
     2. расскоментируем MaxAuthTries 6
@@ -217,7 +239,7 @@ WEB-L
 sshuser - пользователь указан в задании
 9. adduser sshuser
 10. systemctl restart sshd
-11. apt-get update && apt-get install chrony docker-io -y
+11. -----------------------
 12. vim /etc/chrony.conf
         1. # “pool pool.ntp.org iburst”
         2. в конец server 100.100.100.1 iburst
@@ -236,9 +258,11 @@ WEB-R
     1. default via 20.20.20.1
 5. systemctl restart network
 6. reboot
-7. vim /etc/openssh/banner.txt
+7.  apt-get update && apt-get install chrony bind bind-utils -y
+8.  ----------------------------------
+9. vim /etc/openssh/banner.txt
     1. Authorized access only
-8. vim /etc/openssh/sshd_config
+10. vim /etc/openssh/sshd_config
     1. расскоментируем Port 22
     пишем вместо 22 тот порт, который указан в задании (2024)
     2. расскоментируем MaxAuthTries 6
@@ -247,13 +271,13 @@ WEB-R
     вместо none пишем путь к banner.txt (/etc/openssh/banner.txt)
     4. добавляем в конец AllowUsers sshuser
 sshuser - пользователь указан в задании
-9. adduser sshuser
-10. systemctl restart sshd
-11. apt-get update && apt-get install chrony bind bind-utils -y
-12. vim /etc/chrony.conf
+11. adduser sshuser
+12. systemctl restart sshd
+12-----------------------
+13. vim /etc/chrony.conf
         1. # “pool pool.ntp.org iburst”
         2. в конец server 150.150.150.1 iburst
-13. После того как настроили днс на srv и web-r, надо указать в /etc/resolv.conf только nameserver 127.0.0.1, (если инета нет, добавьте еще nameserver 8.8.8.8 и nameserver 94.232.137.104, может помочь):
+14. После того как настроили днс на srv и web-r, надо указать в /etc/resolv.conf только nameserver 127.0.0.1, (если инета нет, добавьте еще nameserver 8.8.8.8 и nameserver 94.232.137.104, может помочь):
 
 
 SRV-L
@@ -268,10 +292,12 @@ SRV-L
 5. systemctl restart network
 6. reboot
 7. apt-get update && apt-get install bind bind-utils chrony -y
-8. vim /etc/chrony.conf
+
+8. ---------------------------------
+9. vim /etc/chrony.conf
     1. .# “pool pool.ntp.org iburst”
     2. в конец  “server 100.100.100.1 iburst”
-9. vim /etc/bind/options.conf
+10. vim /etc/bind/options.conf
     1. добавляем в options:
     listen-on { any; };
     forwarders { 94.232.137.104; };
@@ -282,7 +308,7 @@ SRV-L
 и убираем листен 127.0.0.1 ниже
 ![1](https://github.com/ErmKaterina/-/assets/109353253/ce8b63b4-4cc6-4587-aa57-b57714f6e384)
 
-10. vim /etc/bind/rfc1912.conf
+11. vim /etc/bind/rfc1912.conf
     1. добавляем в конец:
     zone "au.team" {
                     type master;
