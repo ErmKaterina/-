@@ -1,0 +1,65 @@
+isp
+
+1. apt-get update && apt-get install nftables -y
+2. vim /etc/nftables/nftables.nft
+    1. в начало:
+    flush ruleset
+    2. в конец:
+    table ip nat {
+      chain postrouting {
+         type nat hook postrouting priority 0;
+         oifname enp0s3 (интерфейс в сторону интернета) masquerade
+      }
+    }
+
+3. systemctl enable --now nftables
+4. nft -f /etc/nftables/nftables.nft
+
+rtr-l
+
+1. Если “ping 8.8.8.8” идет, а “ping ya.ru” не идет, то в 
+/etc/resolv.conf записываем в начало nameserver 94.232.137.104 (ip адрес DNS сервера указанный в 5 пункте задания)
+2. apt-get update && apt-get install nftables -y
+3. vim /etc/nftables/nftables.nft
+    1. в начало:
+    flush ruleset
+    2. в конец:
+    table ip nat {
+      chain postrouting {
+         type nat hook postrouting priority 0;
+         ip saddr 10.10.10.0/24 oifname enp0s3 (интерфейс в сторону isp) masquerade;
+      }
+      chain prerouting {
+         type nat hook prerouting priority 0;
+         tcp dport 2024 dnat to 10.10.10.110:2024;
+         udp dport 53 dnat to 10.10.10.100:53;
+      }
+    }
+
+4. systemctl enable --now nftables
+5. nft -f /etc/nftables/nftables.nft
+
+
+rtr-r
+
+1. Если “ping 8.8.8.8” идет, а “ping ya.ru” не идет, то в 
+/etc/resolv.conf записываем в начало nameserver 94.232.137.104 (ip адрес DNS сервера указанный в 5 пункте задания)
+2. apt-get update && apt-get install nftables -y
+3. vim /etc/nftables/nftables.nft
+    1. в начало:
+    flush ruleset
+    2. в конец:
+    table ip nat {
+      chain postrouting {
+         type nat hook postrouting priority 0;
+         ip saddr 20.20.20.0/24 oifname enp0s3 (интерфейс в сторону isp) masquerade;
+      }
+      chain prerouting {
+         type nat hook prerouting priority 0;
+         tcp dport 2024 dnat to 20.20.20.100:2024;
+         udp dport 53 dnat to 20.20.20.100:53;
+      }
+    }
+
+4. systemctl enable --now nftables
+5. nft -f /etc/nftables/nftables.nft
