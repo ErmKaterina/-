@@ -1,0 +1,64 @@
+- RTR-L
+    1. vim /etc/gre.up
+        1. #!/bin/bash
+        ip tunnel add tun0 mode gre local 100.100.100.10 remote 150.150.150.10
+        ip addr add 10.5.5.1/30 dev tun0
+        ip link set up tun0
+        ip route add 20.20.20.0/24  via 10.5.5.2
+    2. chmod +x /etc/gre.up
+    3. /etc/gre.up
+    4. vim /etc/crontab
+        1. в конец добавляем:
+        @reboot root /etc/gre.up
+    5. apt-get install strongswan
+    6. vim /etc/strongswan/ipsec.conf
+        1. ниже “config setup” пишем:
+        conn vpn
+                          auto=start
+                          type=tunnel
+                          authby=secret
+                          left=100.100.100.10
+                          right=150.150.150.10
+                          leftsubnet=0.0.0.0/0
+                          rightsubnet=0.0.0.0/0
+                          leftprotoport=gre
+                          rightprotoport=gre
+                          ike=aes128-sha256-modp3072
+                          esp=aes128-sha256
+7. vim /etc/strongswan/ipsec.secrets
+    1. 100.100.100.10 150.150.150.10 : PSK “P@ssw0rd”
+8. systemctl enable --now ipsec.service
+
+rtr-r
+1. vim /etc/gre.up
+    1. #!/bin/bash
+    ip tunnel add tun0 mode gre local 150.150.150.10 remote 100.100.100.10
+    ip addr add 10.5.5.2/30 dev tun0
+    ip link set up tun0
+    ip route add 10.10.10.0/24  via 10.5.5.1
+2. chmod +x /etc/gre.up
+3. /etc/gre.up
+4. vim /etc/crontab
+    1. в конец добавляем:
+    @reboot root /etc/gre.up
+5. apt-get install strongswan
+6. vim /etc/strongswan/ipsec.conf
+    1. ниже “config setup” пишем:
+    conn vpn
+                  auto=start
+                  type=tunnel
+                  authby=secret
+                  left=150.150.150.10
+                  right=100.100.100.10
+                  leftsubnet=0.0.0.0/0
+                  rightsubnet=0.0.0.0/0
+                  leftprotoport=gre
+                  rightprotoport=gre
+                  ike=aes128-sha256-modp3072
+                  esp=aes128-sha256
+7. vim /etc/strongswan/ipsec.secrets
+    1. 100.100.100.10 150.150.150.10 : PSK “P@ssw0rd”
+8. systemctl enable --now ipsec.service
+
+После того, как на обоих RTR все прописали, проверяем на любом из них ipsec status,
+если есть 1 up, то все норм, если нет, то пробуем ipsec update и ipsec restart.
