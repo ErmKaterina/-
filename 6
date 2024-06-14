@@ -1,0 +1,56 @@
+- ISP
+    1. apt-get install chrony
+    2. vim /etc/chrony.conf
+        1. в конец пишем:
+        server 127.0.0.1
+        allow 100.100.100.0/28
+        allow 150.150.150.0/28
+        allow 35.35.35.0/28
+        allow 10.10.10.0/24
+        allow 20.20.20.0/24
+        local stratum 5
+    3. systemctl restart chronyd
+- CLI
+    1. apt-get install chrony
+    2. vim /etc/chrony.conf
+        1. комментируем (пишем #) перед “pool pool.ntp.org iburst”
+        2. в конец пишем:
+        server 35.35.35.1 iburst
+    3. systemctl restart chronyd
+
+    - RTR-L
+    1. apt-get install chrony
+    2. vim /etc/chrony.conf
+        1. комментируем (пишем #) перед “pool pool.ntp.org iburst”
+        2. в конец пишем:
+        server 100.100.100.1 iburst
+    3. systemctl restart chronyd
+- RTR-R
+    1. apt-get install chrony
+    2. vim /etc/chrony.conf
+        1. комментируем (пишем #) перед “pool pool.ntp.org iburst”
+        2. в конец пишем:
+        server 150.150.150.1 iburst
+    3. systemctl restart chronyd
+- WEB-R
+    1. apt-get install chrony
+    2. vim /etc/chrony.conf
+        1. комментируем (пишем #) перед “pool pool.ntp.org iburst”
+        2. в конец пишем:
+        server 150.150.150.1 iburst
+    3. systemctl restart chronyd
+- WEB-L
+    1. apt-get install chrony
+    2. vim /etc/chrony.conf
+        1. комментируем (пишем #) перед “pool pool.ntp.org iburst”
+        2. в конец пишем:
+        server 100.100.100.1 iburst
+    3. systemctl restart chronyd
+
+srv-l
+    1. apt-get install chrony
+2. vim /etc/chrony.conf
+    1. комментируем (пишем #) перед “pool pool.ntp.org iburst”
+    2. в конец пишем:
+    server 100.100.100.1 iburst
+3. systemctl restart chronyd
