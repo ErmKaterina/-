@@ -8,20 +8,24 @@ ISP
 5. cp -r enp0s3/ enp0s8
 6. cp -r enp0s3/ enp0s9
 7. cp -r enp0s3/ enp0s10
-8. vim enp0s8/options
+7. vim enp0s8/options
     1. BOOTPROTO=static
-9. vim enp0s8/ipv4address
+8. vim enp0s8/ipv4address
     1. 100.100.100.1/28
+9. vim enp0s8/ipv4route
+    1. 10.10.10.0/24 via 100.100.100.10
 10. vim enp0s9/options
     1. BOOTPROTO=static
 11. vim enp0s9/ipv4address
     1. 150.150.150.1/28
-12. vim enp0s10/options
-1. BOOTPROTO=static
-13. vim enp0s10/ipv4address
+12. vim enp0s9/ipv4route
+    1. 20.20.20.0/24 via 150.150.150.10
+13. vim enp0s10/options
+    1. BOOTPROTO=static
+14. vim enp0s10/ipv4address
     1. 35.35.35.1/28
-14. systemctl restart network
-15. reboot
+15. systemctl restart network
+16. reboot
 
 --------------------------------------------------------------------
 16. ip route add 10.10.10.0/24 via 100.100.100.10 (можно написать в файл /etc/net/ifaces/enp0s8/ipv4route и рестартнуть network)
