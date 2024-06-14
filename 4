@@ -1,0 +1,33 @@
+- WEB-L
+    1. vim /etc/openssh/banner.txt
+        1. Authorized access only
+    2. vim /etc/openssh/sshd_config
+        1. расскоментируем строчку Port 22
+        пишем вместо 22 тот порт, который указан в задании (2024)
+        2. расскоментируем строчку MaxAuthTries 6
+        пишем вместо 6 столько попыток, сколько указано в задании (2)
+        3. расскоментируем строчку Banner none
+        вместо none пишем путь к banner.txt (/etc/openssh/banner.txt)
+        4. добавляем в конец AllowUsers sshuser
+        sshuser - пользователь указан в задании
+    3. adduser sshuser
+    4. passwd sshuser
+        1. P@ssw0rd два раза
+    5. systemctl restart sshd
+
+    - WEB-R
+    1. vim /etc/openssh/banner.txt
+        1. Authorized access only
+    2. vim /etc/openssh/sshd_config
+        1. расскоментируем строчку Port 22
+        пишем вместо 22 тот порт, который указан в задании (2024)
+        2. расскоментируем строчку MaxAuthTries 6
+        пишем вместо 6 столько попыток, сколько указано в задании (2)
+        3. расскоментируем строчку Banner none
+        вместо none пишем путь к banner.txt (/etc/openssh/banner.txt)
+        4. добавляем в конец AllowUsers sshuser
+        sshuser - пользователь указан в задании
+    3. adduser sshuser
+    4. passwd sshuser
+        1. P@ssw0rd два раза
+    5. systemctl restart sshd
