@@ -279,7 +279,7 @@ SRV-L
     recursion yes;
     allow-query { any; };
     allow-recursion { any; };
-
+и убираем листен 127.0.0.1 ниже
 ![1](https://github.com/ErmKaterina/-/assets/109353253/ce8b63b4-4cc6-4587-aa57-b57714f6e384)
 
 10. vim /etc/bind/rfc1912.conf
