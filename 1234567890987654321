@@ -1,0 +1,258 @@
+ISP
+hostnamectl set-hostname isp
+nano /etc/net/sysctl.conf 
+net.ipv4.ip_forward = 1
+cd /etc/net/ifaces
+cp -r ens18/ ens19
+vim ens19/options
+BOOTPROTO=static
+cp -r ens19/ ens20
+cp -r ens19/ ens21
+vim ens19/ipv4address
+100.100.100.1/28
+vim ens19/ipv4route
+10.10.10.0/24 via 100.100.100.10
+vim ens20/ipv4address
+150.150.150.1/28
+vim ens20/ipv4route
+20.20.20.0/24 via 150.150.150.10
+vim ens21/ipv4address
+35.35.35.1/28
+systemctl restart network
+reboot
+apt-get update && apt-get install nftables chrony -y
+vim /etc/nftables/nftables.nft
+в начало:
+flush ruleset;
+в конец:
+table ip nat {
+  chain postrouting {
+     type nat hook postrouting priority 0;
+     oifname ens18 masquerade;
+  }
+}
+Вот так:
+
+
+systemctl enable --now nftables
+nft -f /etc/nftables/nftables.nft
+
+CLI
+hostnamectl set-hostname cli
+cd /etc/net/ifaces
+cp -r ens18/ ens19
+vim ens19/options
+BOOTPROTO=static
+vim ens19/ipv4address
+35.35.35.10/28
+vim ens19/ipv4route
+default via 35.35.35.1
+systemctl restart network
+reboot
+apt-get update && apt-get install chrony yandex-browser -y
+
+RTR-L
+hostnamectl set-hostname rtr-l
+vim /etc/net/sysctl.conf 
+net.ipv4.ip_forward = 1
+cd /etc/net/ifaces
+vim ens18/options
+BOOTPROTO=static
+cp -r ens18/ ens19
+vim ens18/ipv4address
+100.100.100.10/28
+vim ens18/ipv4route
+default via 100.100.100.1
+vim ens19/ipv4address
+10.10.10.1/24
+systemctl restart network
+reboot
+apt-get update && apt-get install nftables chrony strongswan -y
+vim /etc/nftables/nftables.nft
+в начало:
+flush ruleset;
+в конец:
+table ip nat {
+  chain postrouting {
+     type nat hook postrouting priority 0;
+     ip saddr 10.10.10.0/24 oifname ens18 masquerade;
+  }
+}
+systemctl enable --now nftables
+nft -f /etc/nftables/nftables.nft
+
+RTR-R
+hostnamectl set-hostname rtr-r
+vim /etc/net/sysctl.conf 
+net.ipv4.ip_forward = 1
+cd /etc/net/ifaces
+vim ens18/options
+BOOTPROTO=static
+cp -r ens18/ ens19
+vim ens18/ipv4address
+150.150.150.10/28
+vim ens18/ipv4route
+default via 150.150.150.1
+vim ens19/ipv4address
+20.20.20.1/24
+systemctl restart network
+reboot
+apt-get update && apt-get install chrony nftables strongswan -y
+vim /etc/nftables/nftables.nft
+в начало:
+flush ruleset;
+в конец:
+table ip nat {
+  chain postrouting {
+     type nat hook postrouting priority 0;
+     ip saddr 20.20.20.0/24 oifname ens18 masquerade;
+  }
+}
+systemctl enable --now nftables
+nft -f /etc/nftables/nftables.nft
+
+WEB-L
+hostnamectl set-hostname web-l
+cd /etc/net/ifaces/ens18/
+vim options
+BOOTPROTO=static
+vim ipv4address
+10.10.10.110/24
+vim ipv4route
+default via 10.10.10.1
+systemctl restart network
+reboot
+apt-get update && apt-get install chrony docker-io docker-compose nfs-clients -y
+
+WEB-R
+hostnamectl set-hostname web-r
+cd /etc/net/ifaces/ens18/
+vim options
+BOOTPROTO=static
+vim ipv4address
+20.20.20.100/24
+vim ipv4route
+default via 20.20.20.1
+systemctl restart network
+reboot
+apt-get update && apt-get install chrony bind bind-utils nfs-clients -y
+
+SRV-L
+hostnamectl set-hostname srv-l
+cd /etc/net/ifaces/ens18/
+vim options
+BOOTPROTO=static
+vim ipv4address
+10.10.10.100/24
+vim ipv4route
+default via 10.10.10.1
+systemctl restart network
+reboot
+apt-get update && apt-get install chrony bind bind-utils nfs-server -y
+
+3.
+RTR-L
+vim /etc/gre.up
+#!/bin/bash
+ip tunnel add tun0 mode gre local 100.100.100.10 remote 150.150.150.10
+ip addr add 10.5.5.1/30 dev tun0
+ip link set up tun0
+ip route add 20.20.20.0/24  via 10.5.5.2
+chmod +x /etc/gre.up
+/etc/gre.up
+vim /etc/crontab
+в конец добавляем:
+@reboot root /etc/gre.up
+vim /etc/strongswan/ipsec.conf
+ниже “config setup” пишем:
+conn vpn
+(следующие строки через tab)
+                  auto=start
+                  type=tunnel
+                  authby=secret
+                  left=100.100.100.10
+                  right=150.150.150.10
+                  leftsubnet=0.0.0.0/0
+                  rightsubnet=0.0.0.0/0
+                  leftprotoport=gre
+                  rightprotoport=gre
+                  ike=aes128-sha256-modp3072
+                  esp=aes128-sha256
+
+vim /etc/strongswan/ipsec.secrets
+100.100.100.10 150.150.150.10 : PSK “P@ssw0rd”
+systemctl enable --now ipsec.service
+
+RTR-R
+vim /etc/gre.up
+#!/bin/bash
+ip tunnel add tun0 mode gre local 150.150.150.10 remote 100.100.100.10
+ip addr add 10.5.5.2/30 dev tun0
+ip link set up tun0
+ip route add 10.10.10.0/24  via 10.5.5.1
+chmod +x /etc/gre.up
+/etc/gre.up
+vim /etc/crontab
+в конец добавляем:
+@reboot root /etc/gre.up
+vim /etc/strongswan/ipsec.conf
+ниже “config setup” пишем:
+conn vpn
+(следующие строки через tab)
+                  auto=start
+                  type=tunnel
+                  authby=secret
+                  left=150.150.150.10
+                  right=100.100.100.10
+                  leftsubnet=0.0.0.0/0
+                  rightsubnet=0.0.0.0/0
+                  leftprotoport=gre
+                  rightprotoport=gre
+                  ike=aes128-sha256-modp3072
+                  esp=aes128-sha256
+
+vim /etc/strongswan/ipsec.secrets
+100.100.100.10 150.150.150.10 : PSK “P@ssw0rd”
+systemctl enable --now ipsec.service
+
+Задание 4: настройка ssh на WEB-L и WEB-R
+
+WEB-L
+vim /etc/openssh/banner.txt
+vim /etc/openssh/sshd_config
+расскоментируем строчку Port 22
+пишем вместо 22 порт 2024
+расскоментируем строчку MaxAuthTries 6
+пишем вместо 6 попыток 2
+расскоментируем строчку Banner none
+вместо none пишем путь к banner.txt /etc/openssh/banner.txt
+добавляем в конец
+AllowUsers sshuser
+adduser sshuser
+passwd sshuser
+P@ssw0rd два раза
+systemctl restart sshd
+
+WEB-R
+vim /etc/openssh/banner.txt
+Authorized access only
+vim /etc/openssh/sshd_config
+расскоментируем строчку Port 22
+пишем вместо 22 порт 2024
+расскоментируем строчку MaxAuthTries 6
+пишем вместо 6 попыток 2
+расскоментируем строчку Banner none
+вместо none пишем путь к banner.txt /etc/openssh/banner.txt
+добавляем в конец
+AllowUsers sshuser
+adduser sshuser
+passwd sshuser
+P@ssw0rd два раза
+systemctl restart sshd
+
+Задание 5: DNS
+
+
+
+
+
