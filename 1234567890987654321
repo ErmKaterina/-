@@ -77,6 +77,10 @@ table ip nat {
      type nat hook postrouting priority 0;
      ip saddr 10.10.10.0/24 oifname ens18 masquerade;
   }
+  chain prerouting {
+     type nat hook prerouting priority 0;
+     tcp dport 2024 dnat to 10.10.10.110:2024;
+  }
 }
 systemctl enable --now nftables
 nft -f /etc/nftables/nftables.nft
@@ -106,6 +110,10 @@ table ip nat {
   chain postrouting {
      type nat hook postrouting priority 0;
      ip saddr 20.20.20.0/24 oifname ens18 masquerade;
+  }
+  chain prerouting {
+     type nat hook prerouting priority 0;
+     tcp dport 2024 dnat to 20.20.20.100:2024;
   }
 }
 systemctl enable --now nftables
@@ -219,6 +227,7 @@ systemctl enable --now ipsec.service
 
 WEB-L
 vim /etc/openssh/banner.txt
+Authorized access only
 vim /etc/openssh/sshd_config
 расскоментируем строчку Port 22
 пишем вместо 22 порт 2024
@@ -253,6 +262,228 @@ systemctl restart sshd
 Задание 5: DNS
 
 
+SRV-L
+systemctl enable --now bind
+
+vim /etc/bind/options.conf
+
+что должно быть в options:
+
+(таб)listen-on { any; };
+forwarders { 94.232.137.104; };
+dnssec-validation no;
+recursion yes;
+allow-query { any; };
+allow-recursion { any; };
+
+vim /etc/bind/local.conf
+
+добавляем после слов Add other zones here:
+zone "au.team" {
+                type master;
+                file "au.team";
+                allow-transfer {20.20.20.100;};
+};
+zone "10.10.10.in-addr.arpa" {
+                type master;
+                file "left.reverse";
+                allow-transfer {20.20.20.100;};
+};
+zone "20.20.20.in-addr.arpa" {
+                type master;
+                file "right.reverse";
+                allow-transfer {20.20.20.100;};
+};
+zone "35.35.35.in-addr.arpa" {
+                type master;
+                file "cli.reverse";
+                allow-transfer {20.20.20.100;};
+};
+
+cd /etc/bind/zone/
+cp localhost au.team
+vim au.team
+заменяем localhost. на au.team.  и root.localhost. на root.au.team.
+@INNSau.team.  (3 таба)
+@INA10.10.10.100
+ispINA100.100.100.1
+rtr-lINA10.10.10.1
+rtr-rINA20.20.20.1
+web-lINA10.10.10.110
+web-rINA20.20.20.100
+srv-lINA10.10.10.100
+cliINA35.35.35.10
+dnsINCNAMEsrv-l
+ntpINCNAMEisp
+mediawikiINCNAMEweb-l
+
+cp localhost right.reverse
+
+vim right.reverse
+
+заменяем localhost. на 20.20.20.in-addr.arpa. и
+root.localhost. на root.20.20.20.in-addr.arpa.
+
+@INNSau.team. (3 таба)
+@INA20.20.20.100
+1 PTR rtr-r.au.team. (2 таба)
+100PTRweb-r.au.team.
+
+cp right.reverse left.reverse
+vim left.reverse
+
+@INNSau.team. (3 таба)
+@INA10.10.10.100
+1PTRrtr-l.au.team. (2 таба)
+100PTRsrv-l.au.team.
+110PTRweb-l.au.team.
+
+cp right.reverse cli.reverse
+vim cli.reverse
+заменяем 10.10.10.in-addr.arpa. на 35.35.35.in-addr.arpa.
+и root.10.10.10.in-addr.arpa. на root.35.35.35.in-addr.arpa.
+
+@INNSau.team.
+@INA35.35.35.1
+1PTRisp.au.team. (2 таба)
+10PTRcli.au.team.
+
+chmod 777 au.team
+chmod 777 right.reverse
+chmod 777 left.reverse
+chmod 777 cli.reverse
+systemctl restart bind
+
+vim /etc/resolv.conf
+должен быть указан только один nameserver 127.0.0.1 (в самом конце)
 
 
+WEB-R
 
+systemctl enable --now bind
+vim /etc/bind/options.conf
+что должно быть в options:
+(таб)listen-on { any; };
+forwarders { 10.10.10.100; };
+dnssec-validation no;
+recursion yes;
+allow-query { any; };
+allow-recursion { any; };
+
+vim /etc/bind/local.conf
+
+добавляем после слов Add other zones here:
+zone "au.team" {
+(таб)type slave;
+file "slave/au.team";
+masters {10.10.10.100;};
+};
+zone "10.10.10.in-addr.arpa" {
+type slave;
+file "slave/left.reverse";
+masters {10.10.10.100;};
+};
+zone "20.20.20.in-addr.arpa" {
+type slave;
+file "slave/right.reverse";
+masters {10.10.10.100;};
+};
+zone "35.35.35.in-addr.arpa" {
+type slave;
+file "slave/cli.reverse";
+masters {10.10.10.100;};
+};
+
+chown named:named /var/lib/bind/zone/slave/
+chown named:named /etc/bind/zone/slave/
+systemctl restart bind
+vim /etc/resolv.conf
+должен быть указан только один nameserver 127.0.0.1 в самом конце
+
+CLI 
+vim /etc/resolv.conf
+должен быть указан только один nameserver 10.10.10.100
+
+ISP
+vim /etc/resolv.conf
+должен быть указан только один nameserver 10.10.10.100
+
+RTR-L
+vim /etc/resolv.conf
+должен быть указан только один nameserver 10.10.10.100
+
+RTR-R
+vim /etc/resolv.conf
+должен быть указан только один nameserver 20.20.20.100 (если WEB-R не работает, то 10.10.10.100)
+
+WEB-L
+vim /etc/resolv.conf
+должен быть указан только один nameserver 10.10.10.100
+
+
+6 задание
+ISP
+vim /etc/chrony.conf
+в конец пишем:
+server 127.0.0.1
+allow 100.100.100.0/28
+allow 150.150.150.0/28
+allow 35.35.35.0/28
+allow 10.10.10.0/24
+allow 20.20.20.0/24
+local stratum 5
+systemctl restart chronyd
+
+CLI
+vim /etc/chrony.conf
+комментируем (пишем #) перед “pool pool.ntp.org iburst”
+в конец пишем:
+server 35.35.35.1 iburst
+systemctl restart chronyd
+
+- RTR-L
+vim /etc/chrony.conf
+kомментируем (пишем #) перед “pool pool.ntp.org iburst”
+в конец пишем:
+server 100.100.100.1 iburst
+systemctl restart chronyd
+
+- RTR-R
+vim /etc/chrony.conf
+комментируем (пишем #) перед “pool pool.ntp.org iburst”
+в конец пишем:
+server 150.150.150.1 iburst
+systemctl restart chronyd
+
+- WEB-R
+vim /etc/chrony.conf
+комментируем (пишем #) перед “pool pool.ntp.org iburst”
+в конец пишем:
+server 150.150.150.1 iburst
+systemctl restart chronyd
+
+- WEB-L
+vim /etc/chrony.conf
+комментируем (пишем #) перед “pool pool.ntp.org iburst”
+в конец пишем:
+server 100.100.100.1 iburst
+systemctl restart chronyd
+
+- SRV-L
+vim /etc/chrony.conf
+комментируем (пишем #) перед “pool pool.ntp.org iburst”
+в конец пишем:
+server 100.100.100.1 iburst
+systemctl restart chronyd
+
+
+9
+- CLI
+apt-get install yandex-browser -y
+запустить НЕ от рута с помощью команды:
+yandex-browser-stable
+запустить от рута с помощью команды:
+yandex-browser-stable --no-sandbox
+
+монтирование 
+https://shelepovko.notion.site/3457fe6ba9b54a009dba0b5b785e81e9?pvs=4
