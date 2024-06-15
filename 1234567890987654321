@@ -485,7 +485,18 @@ yandex-browser-stable
 запустить от рута с помощью команды:
 yandex-browser-stable --no-sandbox
 
+
+
+Если DNS сервер не работает, systemctl status bind выдает ошибки, надо systemctl restart bind на DNS сервере
+Для проверки chrony используем на ISP : chronyc clients,а на всех остальных cronyc sources
+Для проверки ssh используем : ssh -p sshuser@10.10.10.110
+Если вообще никак не пингуется то добавить nameserver ya.ru(но это в ПАТОВОЙ ситуации)
+
+
 монтирование 
 https://shelepovko.notion.site/3457fe6ba9b54a009dba0b5b785e81e9?pvs=4
 
 https://vk.com/doc174502290_681845244?hash=q756y9fnGePhrOojXtxKcKgc1qp7ojr1MYMzj9qU96c&dl=EfSNqgkZXmLoB2FDmgDM2yp3DVk5UWv64I8m4dXaS0D
+
+
+
