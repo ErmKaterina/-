@@ -1,3 +1,6 @@
+https://shelepovko.notion.site/3457fe6ba9b54a009dba0b5b785e81e9?pvs=4
+
+
 ISP
 hostnamectl set-hostname isp
 nano /etc/net/sysctl.conf 
